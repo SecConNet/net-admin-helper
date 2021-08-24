@@ -1,0 +1,10 @@
+bin/*
+
+# IDE
+.idea
+.eclipse
+.vscode
+*.swp
+
+# Mac
+.DS_Store
