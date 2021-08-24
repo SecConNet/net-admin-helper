@@ -39,6 +39,75 @@ commands.
 - GNU/Linux with Linux kernel >=4.3
 
 
+## Configuration
+
+net-admin-helper is configured by editing (or overwriting) the file `config.h`.
+In this file, individual tasks can be enabled, and the paths to the helper
+programs are configured. (net-admin-helper does not search the PATH, for reasons
+of security). See the file itself for detailed instructions.
+
+Also see `docs/` for some scenarios and which tasks are needed to support them.
+
+
+## Building and installing
+
+Because net-admin-helper is capabilities-aware, it needs to link to the `libcap`
+library. Installing the `libcap-dev` or `libcap-devel` package should make it
+available.
+
+Once `libcap` is available, net-admin-helper can be built by running `make`:
+
+```bash
+net-admin-helper$ make
+```
+
+This will produce an executable in `bin/`. Next, this executable needs to be
+given CAP_NET_ADMIN capability:
+
+```bash
+net-admin-helper$ sudo make setcap
+```
+
+Note that this requires root access.
+
+You can now run the executable where it is, or install it together with your
+application.
+
+Most tasks supported by net-admin-helper require the `ip` command, which is
+available in the `iproute2` package on most GNU/Linux distributions. If you want
+to run any tasks involving WireGuard then you'll need to install the
+`wireguard-tools` package as well to make the `wg` command available.
+
+
+## Using from an application
+
+All you need to be able to do is to run an external command, passing it command
+line arguments and obtaining the exit code and standard output and standard
+error streams. For example in Python:
+
+```python
+import subprocess
+
+
+result = subprocess.run(
+        ['net-admin-helper', 'move_to_ns', 'tun0', str(pid)],
+        encoding='utf-8', capture_output=True)
+
+if result.returncode != 0:
+    error_message = result.stderr
+    # log error
+    # raise or otherwise handle
+
+output = result.stdout
+# use output, if applicable
+```
+
+
+## Extending with new tasks
+
+TODO
+
+
 ## Authors
 
 - Lourens Veen (Netherlands eScience Center)
@@ -47,5 +116,7 @@ commands.
 ## Legal
 
 net-admin-helper is Copyright 2021 Netherlands eScience Center and
-University of Amsterdam. Licensed under the Apache License 2.0.
+University of Amsterdam.
+
+Licensed under the Apache License 2.0.
 
