@@ -1,0 +1,21 @@
+#pragma once
+
+/** Paths to helper programs.
+ *
+ * net-admin-helper does not search the PATH for reasons of security, so the
+ * paths to the helper applications need to be configured explicitly (and they
+ * must be installed, obviously). This is done here. The given paths should work
+ * in most cases (Debian, Red Hat, and derivatives).
+ */
+#define IP "/sbin/ip"
+#define WG "/usr/bin/wg"
+
+
+/** Enable tasks.
+ *
+ * This selects tasks to enable. To enable a task, remove the `// ` at the start
+ * of its line.
+ */
+// #define ENABLE_WIREGUARD_CREATE
+// #define ENABLE_WIREGUARD_ADD_PEER
+
