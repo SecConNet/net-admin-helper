@@ -16,6 +16,7 @@
  * This selects tasks to enable. To enable a task, remove the `// ` at the start
  * of its line.
  */
-// #define ENABLE_WIREGUARD_CREATE
-// #define ENABLE_WIREGUARD_ADD_PEER
+// #define ENABLE_CWG_CREATE
+// #define ENABLE_CWG_CONNECT
+// #define ENABLE_CWG_DESTROY
 
