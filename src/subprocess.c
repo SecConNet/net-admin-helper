@@ -145,6 +145,10 @@ static int write_all(int fd, char const * data, ssize_t len) {
  * @return 0 on success, -1 on failure.
  */
 static int read_all(int fd, const char ** buffer, ssize_t * size) {
+    // Note: chunk_size must be larger than the size of any sensitive output
+    // the called program may print on standard out/error, to avoid realloc()
+    // spraying partial copies of it all over RAM. Currently, we only have
+    // Wireguard private keys, which are 44 bytes, so 1k is fine.
     const ssize_t chunk_size = 1024;
     ssize_t num_read, total_read = 0;
     char *buf = NULL;
@@ -179,6 +183,9 @@ exit_0:
 
 
 /** Run a command and optionally communicate with it.
+ *
+ * Warning: if you may get more than 1kB of sensitive data on standard out
+ * and/or standard error, see the comment at read_all().
  *
  * @param filename The file to execute.
  * @param argv Arguments to pass (may be NULL).
@@ -321,6 +328,9 @@ void print_error_output(const char * out_buf, ssize_t out_size) {
  * exits with a non-zero exit code, an error message and the initial output will
  * be printed on stderr, and the output variables will not be assigned to.
  * Otherwise, the outputs are set and 0 is returned.
+ *
+ * Warning: if you may get more than 1kB of sensitive data on standard out
+ * and/or standard error, see the comment at read_all().
  *
  * @param filename The file to execute.
  * @param argv Arguments to pass (may be NULL).

@@ -75,6 +75,12 @@ int validate_dev(const char * cur, const char ** next) {
         err = validate_letter(cur, &cur);
         if (err)
             err = validate_digit(cur, &cur);
+        if (err)
+            err = validate_literal('-', cur, &cur);
+        if (err)
+            err = validate_literal('@', cur, &cur);
+        // Linux seems to allow some other characters, but these are the ones
+        // in common use, so we'll keep it at this for now.
     }
 
     if (next) {

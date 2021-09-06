@@ -1,9 +1,10 @@
 base_objects = bin/main.o bin/capabilities.o bin/subprocess.o bin/validation.o
-task_objects = bin/wireguard.o
+task_objects = bin/container_wireguard.o
 
 objects = $(base_objects) $(task_objects)
 
-CFLAGS=-g -std=c11 -Wall -Wextra -pedantic -O0 -I. -Isrc
+# _DEFAULT_SOURCE is needed for explicit_bzero()
+CFLAGS=-g -std=c11 -D_GNU_SOURCE -Wall -Wextra -pedantic -O0 -I. -Isrc
 LDFLAGS=-lcap
 
 
@@ -16,8 +17,8 @@ setcap: bin/net-admin-helper
 	# Ensure normal users cannot modify the binary
 	chown root:root bin/net-admin-helper
 	chmod 755 bin/net-admin-helper
-	# Give it CAP_NET_ADMIN
-	setcap cap_net_admin=p bin/net-admin-helper
+	# Give it the needed capabilities
+	setcap 'cap_net_admin,cap_sys_ptrace,cap_sys_admin=p' bin/net-admin-helper
 
 
 .PHONY: clean
@@ -25,11 +26,12 @@ clean:
 	rm -f bin/*
 
 
-bin/main.o: config.h src/wireguard.h
+bin/main.o: config.h src/container_wireguard.h
 bin/capabilities.o: src/capabilities.h
 bin/subprocess.o: src/capabilities.h src/subprocess.h
 bin/validation.o: src/validation.h
-bin/wireguard.o: src/wireguard.h src/dispatch.h src/subprocess.h src/validation.h
+
+bin/container_wireguard.o: config.h src/container_wireguard.h src/dispatch.h src/subprocess.h src/validation.h
 
 bin/%.o: src/%.c
 	$(CC) -c $< $(CFLAGS) -o $@
