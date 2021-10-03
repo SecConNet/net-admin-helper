@@ -63,6 +63,8 @@ exit_0:
  * @return 0 on success, -1 on error.
  */
 static int setup_pipes_for_child(io_pipes_t const * pipes) {
+    int ret = 0;
+
     if (dup2(pipes->child_in, STDIN_FILENO) < 0) {
         perror("Redirecting stdin");
         goto exit_0;
@@ -78,19 +80,27 @@ static int setup_pipes_for_child(io_pipes_t const * pipes) {
         goto exit_0;
     }
 
-    if (close(pipes->parent_out) != 0)
+    if (close(pipes->parent_out) != 0) {
         perror("Closing pipe in child");
+        ret = -1;
+    }
 
-    if (close(pipes->child_in) != 0)
+    if (close(pipes->child_in) != 0) {
         perror("Closing pipe in child");
+        ret = -1;
+    }
 
-    if (close(pipes->child_out) != 0)
+    if (close(pipes->child_out) != 0) {
         perror("Closing pipe in child");
+        ret = -1;
+    }
 
-    if (close(pipes->parent_in) != 0)
+    if (close(pipes->parent_in) != 0) {
         perror("Closing pipe in child");
+        ret = -1;
+    }
 
-    return 0;
+    return ret;
 
 exit_0:
     return -1;
@@ -105,11 +115,17 @@ exit_0:
  * @return 0 on success, -1 on error.
  */
 static int setup_pipes_for_parent(io_pipes_t const * pipes) {
-    if (close(pipes->child_in) != 0)
+    int ret = 0;
+
+    if (close(pipes->child_in) != 0) {
         perror("Closing pipe in parent");
-    if (close(pipes->child_out) != 0)
+        ret = -1;
+    }
+    if (close(pipes->child_out) != 0) {
         perror("Closing pipe in parent");
-    return 0;
+        ret = -1;
+    }
+    return ret;
 }
 
 
@@ -217,9 +233,10 @@ int run(
     ssize_t out_size_ = 0;
 
     int status;
+    int ret = 0;
 
     if (create_pipes(&pipes) != 0)
-        goto exit_0;
+        return -1;
 
     child_pid = fork();
 
@@ -237,37 +254,40 @@ int run(
             exit(255);
         }
 
-        // execve() is mistyped for backward compatibility
+        // execve() is mistyped for backward compatibility,
+        // so need to const-cast here.
         execve(filename, (char * const *)argv, (char * const *)env);
         perror("Executing command");
         exit(255);
     }
     else if (child_pid > 0) {
         // parent
-        if (setup_pipes_for_parent(&pipes) != 0)
+        if (setup_pipes_for_parent(&pipes) != 0) {
             goto exit_0;
+        }
 
         if (in_buf != NULL) {
             if (write_all(pipes.parent_out, in_buf, in_size) != 0) {
                 perror("Writing to stdin in parent");
-                goto exit_2;
+                ret = -1;
             }
         }
 
         if (close(pipes.parent_out) != 0) {
             perror("Closing stdin pipe in parent");
-            goto exit_1;
+            ret = -1;
         };
 
         if (out_buf != NULL) {
             if (read_all(pipes.parent_in, &out_buf_, &out_size_) != 0) {
-                goto exit_1;
+                fprintf(stderr, "Error reading from stdout/stderr");
+                ret = -1;
             }
         }
 
         if (close(pipes.parent_in) != 0) {
             perror("Closing stdout/err pipe in parent");
-            goto exit_0;
+            ret = -1;
         }
 
         waitpid(child_pid, &status, 0);
@@ -279,23 +299,16 @@ int run(
 
         *out_buf = out_buf_;
         *out_size = out_size_;
-        return 0;
-    }
-    else {
-        // fork error
-        close(pipes.parent_out);
-        close(pipes.child_in);
-        close(pipes.child_out);
-        close(pipes.parent_in);
-    }
+        return ret;
 
-exit_2:
-    close(pipes.parent_out);
-
-exit_1:
-    close(pipes.parent_in);
+    }
+    // fork error if we get here, try to clean up
 
 exit_0:
+    close(pipes.parent_out);
+    close(pipes.child_in);
+    close(pipes.child_out);
+    close(pipes.parent_in);
     return -1;
 }
 
