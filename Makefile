@@ -26,7 +26,7 @@ export DOCKER_BUILDKIT = 1
 .PHONY: docker
 docker:
 	docker build . -t net-admin-helper:latest
-	docker save net-admin-helper:latest | gzip -1 -c >bin/net-admin-helper.tar.gz
+	docker save net-admin-helper:latest >bin/net-admin-helper.tar
 
 
 .PHONY: clean
