@@ -21,9 +21,18 @@ setcap: bin/net-admin-helper
 	setcap 'cap_net_admin,cap_sys_ptrace,cap_sys_admin=p' bin/net-admin-helper
 
 
+export DOCKER_BUILDKIT = 1
+
+.PHONY: docker
+docker:
+	docker build . -t net-admin-helper:latest
+	docker save net-admin-helper:latest | gzip -1 -c >bin/net-admin-helper.tar.gz
+
+
 .PHONY: clean
 clean:
-	rm -f bin/*
+	-rm -f bin/*
+	-docker rmi net-admin-helper:latest
 
 
 bin/main.o: config.h src/container_wireguard.h
