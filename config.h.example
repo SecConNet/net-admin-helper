@@ -11,11 +11,12 @@
 #define WG "/usr/bin/wg"
 
 
-/** Enable tasks.
- *
- * This selects tasks to enable. To enable a task, remove the `// ` at the start
- * of its line.
- */
+/** Settings for container WireGuard */
+
+// Device name prefix, use e.g. your application name
+#define CWG_PREFIX "cwg"
+
+// To enable a task, remove the `// ` at the start of its line.
 // #define ENABLE_CWG_CREATE
 // #define ENABLE_CWG_CONNECT
 // #define ENABLE_CWG_DESTROY
