@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/capability.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -140,9 +141,9 @@ static int cwg_set_ns(const char * netns_pid) {
     char netns_path[32];
     snprintf(netns_path, 32, "/proc/%s/ns/net", netns_pid);
 
-    enable_cap_sys_ptrace();
+    enable_cap(CAP_SYS_PTRACE);
     int netns_fd = open(netns_path, O_RDONLY | O_NONBLOCK);
-    disable_cap_sys_ptrace();
+    disable_cap(CAP_SYS_PTRACE);
 
     if (netns_fd == -1) {
         fprintf(stderr, "When opening %s\n", netns_path);
@@ -150,9 +151,9 @@ static int cwg_set_ns(const char * netns_pid) {
         goto exit_fail;
     }
 
-    enable_cap_sys_admin();
+    enable_cap(CAP_SYS_ADMIN);
     int err = setns(netns_fd, CLONE_NEWNET);
-    disable_cap_sys_admin();
+    disable_cap(CAP_SYS_ADMIN);
 
     if (err) {
         fprintf(stderr, "Could not enter namespace\n");
