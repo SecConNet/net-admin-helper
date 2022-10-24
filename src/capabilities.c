@@ -65,10 +65,9 @@ exit_0:
 }
 
 
-/** Enable CAP_SYS_PTRACE so we can access a container network namespace. */
-int enable_cap_sys_ptrace() {
+/** Enable a specific capability. */
+int enable_cap(cap_value_t cap) {
     cap_t caps;
-    cap_value_t cap_list[] = {CAP_SYS_PTRACE};
 
     caps = cap_get_proc();
     if (caps == NULL) {
@@ -76,7 +75,7 @@ int enable_cap_sys_ptrace() {
         goto exit_0;
     }
 
-    if (cap_set_flag(caps, CAP_EFFECTIVE, 1, cap_list, CAP_SET) != 0) {
+    if (cap_set_flag(caps, CAP_EFFECTIVE, 1, &cap, CAP_SET) != 0) {
         perror("Error setting effective capabilities");
         goto exit_0;
     }
@@ -98,10 +97,9 @@ exit_0:
 }
 
 
-/** Disable CAP_SYS_PTRACE. */
-int disable_cap_sys_ptrace() {
+/** Disable a specific capability. */
+int disable_cap(cap_value_t cap) {
     cap_t caps;
-    cap_value_t cap_list[] = {CAP_SYS_PTRACE};
 
     caps = cap_get_proc();
     if (caps == NULL) {
@@ -109,72 +107,7 @@ int disable_cap_sys_ptrace() {
         goto exit_0;
     }
 
-    if (cap_set_flag(caps, CAP_EFFECTIVE, 1, cap_list, CAP_CLEAR) != 0) {
-        perror("Error setting effective capabilities");
-        goto exit_0;
-    }
-
-    if (cap_set_proc(caps) != 0) {
-        perror("Error setting capabilities");
-        goto exit_0;
-    }
-
-    if (cap_free(caps) != 0) {
-        perror("Error freeing capabilities");
-        goto exit_0;
-    }
-
-    return 0;
-
-exit_0:
-    return -1;
-}
-
-
-/** Enable CAP_SYS_ADMIN so we can enter a container network namespace. */
-int enable_cap_sys_admin() {
-    cap_t caps;
-    cap_value_t cap_list[] = {CAP_SYS_ADMIN};
-
-    caps = cap_get_proc();
-    if (caps == NULL) {
-        perror("Error getting capabilities");
-        goto exit_0;
-    }
-
-    if (cap_set_flag(caps, CAP_EFFECTIVE, 1, cap_list, CAP_SET) != 0) {
-        perror("Error setting effective capabilities");
-        goto exit_0;
-    }
-
-    if (cap_set_proc(caps) != 0) {
-        perror("Error setting capabilities");
-        goto exit_0;
-    }
-
-    if (cap_free(caps) != 0) {
-        perror("Error freeing capabilities");
-        goto exit_0;
-    }
-
-    return 0;
-
-exit_0:
-    return -1;
-}
-
-
-int disable_cap_sys_admin() {
-    cap_t caps;
-    cap_value_t cap_list[] = {CAP_SYS_ADMIN};
-
-    caps = cap_get_proc();
-    if (caps == NULL) {
-        perror("Error getting capabilities");
-        goto exit_0;
-    }
-
-    if (cap_set_flag(caps, CAP_EFFECTIVE, 1, cap_list, CAP_CLEAR) != 0) {
+    if (cap_set_flag(caps, CAP_EFFECTIVE, 1, &cap, CAP_CLEAR) != 0) {
         perror("Error setting effective capabilities");
         goto exit_0;
     }

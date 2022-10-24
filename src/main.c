@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/capability.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 
 #include "config.h"
 
+#include "capabilities.h"
 #include "container_wireguard.h"
-
 
 
 void usage(const char * cmd) {
@@ -33,7 +34,9 @@ int main(int argc, char * argv[]) {
 
     // Ensure private keys and the like don't get swapped out to a potentially
     // unencrypted swap partition.
-    mlockall(MCL_FUTURE);
+    enable_cap(CAP_IPC_LOCK);
+    mlockall(MCL_CURRENT | MCL_FUTURE);
+    disable_cap(CAP_IPC_LOCK);
 
     DISPATCH_CWG_CREATE(argv[1]);
     DISPATCH_CWG_CONNECT(argv[1]);

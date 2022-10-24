@@ -18,12 +18,21 @@ setcap: bin/net-admin-helper
 	chown root:root bin/net-admin-helper
 	chmod 755 bin/net-admin-helper
 	# Give it the needed capabilities
-	setcap 'cap_net_admin,cap_sys_ptrace,cap_sys_admin=p' bin/net-admin-helper
+	setcap 'cap_net_admin,cap_sys_ptrace,cap_sys_admin,cap_ipc_lock=p' bin/net-admin-helper
+
+
+export DOCKER_BUILDKIT = 1
+
+.PHONY: docker
+docker:
+	docker build . -t net-admin-helper:latest
+	docker save net-admin-helper:latest >bin/net-admin-helper.tar
 
 
 .PHONY: clean
 clean:
-	rm -f bin/*
+	-rm -f bin/*
+	-docker rmi net-admin-helper:latest
 
 
 bin/main.o: config.h src/container_wireguard.h
